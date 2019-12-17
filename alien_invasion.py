@@ -29,9 +29,10 @@ def run_game():
         #调用飞船移动函数
         ship.update()
         #调用子弹更新函数
-        gf.update_bullets(bullets)
+        gf.update_bullets(aline_settings,screen,ship,alines,bullets)
+        #调用外星人更新函数
+        gf.update_alines(aline_settings,alines)
         #调用更新屏幕函数
         gf.update_screen(aline_settings,screen,ship,alines,bullets)
-
 
 run_game()

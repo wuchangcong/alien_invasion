@@ -52,7 +52,7 @@ def update_screen(alien_settings, screen, ship, aliens, bullets):
     pygame.display.flip()
 
 
-def update_bullets(bullets):
+def update_bullets(alien_settings, screen, ship, aliens, bullets):
     '''子弹更新函数'''
     # 调用子弹移动函数
     bullets.update()
@@ -60,9 +60,21 @@ def update_bullets(bullets):
     for bullet in bullets.copy():
         if bullet.rect.bottom <= 0:
             bullets.remove(bullet)
+    check_bullet_alien_collisions(
+        alien_settings, screen, ship, aliens, bullets)
+
+
+def check_bullet_alien_collisions(alien_settings, screen, ship, aliens, bullets):
+    # 检查是否击中外星人，击中就删除外星人和子弹
+    collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
+    if len(aliens) == 0:
+        # 删除现有子弹，并创建外星人
+        bullets.empty()
+        create_fleet(alien_settings, screen, ship, aliens)
 
 
 def fire_bullet(alien_settings, screen, ship, bullets):
+    '''开火'''
     if len(bullets) < alien_settings.bullet_allowed:
         new_bullet = Bullet(alien_settings, screen, ship)
         bullets.add(new_bullet)
@@ -79,7 +91,8 @@ def create_fleet(alien_settings, screen, ship, aliens):
     # 创建第一行外星人
     for row_number in range(number_row):
         for alien_number in range(number_aliens_x):
-            create_alien(alien_settings, screen, aliens,alien_number,row_number)
+            create_alien(alien_settings, screen, aliens,
+                         alien_number, row_number)
 
 
 def get_number_aliens_x(alien_settings, alien_width):
@@ -105,3 +118,23 @@ def get_number_rows(alien_settings, ship_height, alien_height):
                          (3 * alien_height) - ship_height)
     number_rows = int(available_space_y / (2 * alien_height))
     return number_rows
+
+
+def update_alines(alien_settings, aliens):
+    check_fleet_edges(alien_settings, aliens)
+    aliens.update()
+
+
+def check_fleet_edges(alien_settings, aliens):
+    '''当外星人到达屏幕边缘时采取相应的措施'''
+    for alien in aliens.sprites():
+        if alien.check_edges():
+            change_fleet_direction(alien_settings, aliens)
+            break
+
+
+def change_fleet_direction(alien_settings, aliens):
+    '''改变外星人移动方向'''
+    for alien in aliens.sprites():
+        alien.rect.y += alien_settings.fleet_drop_speed
+    alien_settings.fleet_direction *= -1
